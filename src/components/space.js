@@ -3,7 +3,7 @@ import { Card } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import { Row } from "react-bootstrap";
 import "./espacio.css";
-import Room from "./room";
+import { FormattedMessage } from "react-intl";
 
 const url =
   "https://gist.githubusercontent.com/josejbocanegra/0067d2b28b009140fee423cfc84e40e6/raw/6e6b11160fbcacb56621b6422684d615dc3a0d33/spaces.json";
@@ -24,19 +24,32 @@ function setImageSpace(type) {
 function Space(props) {
   const [spaces, setSpaces] = useState([]);
   useEffect(() => {
-    fetch(url)
-      .then((res) => res.json())
-      .then((res) => {
-        setSpaces(res);
-      });
+    if (!navigator.onLine) {
+      if (localStorage.getItem("spaces") === null) {
+        setSpaces(["Loading..."]);
+      } else {
+        setSpaces(localStorage.getItem("spaces"));
+      }
+    } else {
+      fetch(url)
+        .then((res) => res.json())
+        .then((res) => {
+          setSpaces(res);
+          localStorage.setItem("spaces", JSON.stringify(res));
+        });
+    }
   }, []);
 
   return (
     <div>
-      <h1>My Spaces</h1>
+      <h1><FormattedMessage id="Spaces"/></h1>
       <Row>
         {spaces.map((s) => (
-          <Card style={{ width: "18rem", cursor: "pointer" }} onClick={()=>console.log(s.id)} key={s.id}>
+          <Card
+            style={{ width: "18rem", cursor: "pointer" }}
+            onClick={() => props.method(s.id)}
+            key={s.id}
+          >
             <div className="imageParent">
               <Card.Img
                 variant="top"
@@ -52,8 +65,6 @@ function Space(props) {
           </Card>
         ))}
       </Row>
-
-      <Room />
     </div>
   );
 }
